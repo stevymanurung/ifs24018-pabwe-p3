@@ -123,6 +123,25 @@ tabButtons.forEach((btn) => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
 });
 
+// Navigasi keyboard pada tablist: ArrowLeft/ArrowRight memindahkan fokus
+// antar tab (roving tabindex) lalu langsung mengaktifkannya.
+const tabButtonList = Array.from(tabButtons);
+tabButtonList.forEach((btn, index) => {
+  btn.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+
+    const nextIndex =
+      e.key === "ArrowRight"
+        ? (index + 1) % tabButtonList.length
+        : (index - 1 + tabButtonList.length) % tabButtonList.length;
+
+    const nextBtn = tabButtonList[nextIndex];
+    switchTab(nextBtn.dataset.tab);
+    nextBtn.focus();
+  });
+});
+
 /* ========================================================= */
 /* ================== EXPENSE TRACKER ========================*/
 /* ========================================================= */
@@ -140,6 +159,7 @@ const expenseCategoryInput = $("#expense-category");
 const expenseAmountInput = $("#expense-amount");
 const expenseTypeInput = $("#expense-type");
 const expenseDateInput = $("#expense-date");
+const expenseFormError = $("#expense-form-error");
 
 const expenseSearch = $("#expense-search");
 const expenseFilterType = $("#expense-filter-type");
@@ -162,6 +182,7 @@ const editExpenseCategory = $("#edit-expense-category");
 const editExpenseType = $("#edit-expense-type");
 const editExpenseAmount = $("#edit-expense-amount");
 const editExpenseDate = $("#edit-expense-date");
+const editExpenseFormError = $("#edit-expense-form-error");
 const deleteExpenseTitleEl = $("#delete-expense-title");
 const deleteExpenseConfirmBtn = $("#delete-expense-confirm");
 
@@ -318,9 +339,10 @@ expenseForm.addEventListener("submit", (e) => {
   const date = expenseDateInput.value;
 
   if (!isValidExpenseInput(title, amount, date)) {
-    alert("Judul, tanggal wajib diisi dan jumlah harus angka lebih dari 0.");
+    expenseFormError.classList.remove("hidden");
     return;
   }
+  expenseFormError.classList.add("hidden");
 
   expenses.push({
     id: makeId(),
@@ -354,6 +376,7 @@ function openEditExpenseModal(id) {
   editExpenseType.value = item.type;
   editExpenseAmount.value = item.amount;
   editExpenseDate.value = item.date;
+  editExpenseFormError.classList.add("hidden");
 
   openModal(modalEditExpense);
   editExpenseTitle.focus();
@@ -378,9 +401,10 @@ editExpenseForm.addEventListener("submit", (e) => {
   const date = editExpenseDate.value;
 
   if (!isValidExpenseInput(title, amount, date) || !editingExpenseId) {
-    alert("Judul, tanggal wajib diisi dan jumlah harus angka lebih dari 0.");
+    editExpenseFormError.classList.remove("hidden");
     return;
   }
+  editExpenseFormError.classList.add("hidden");
 
   const item = expenses.find((e) => e.id === editingExpenseId);
   if (item) {
