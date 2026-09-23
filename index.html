@@ -4,29 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sakuku — Uang, Link, Kuis dalam Satu Genggaman</title>
+  <meta name="description" content="Sakuku: aplikasi pencatat keuangan harian, pengelola bookmark, dan kuis interaktif dalam satu halaman. Dibuat dengan HTML, Tailwind CSS, dan JavaScript murni." />
 
-  <!-- Google Fonts -->
+  <!-- Favicon inline (data URI) — tidak butuh request tambahan, menghindari 404 -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%9B%3C/text%3E%3C/svg%3E" />
+
+  <!-- Google Fonts: preconnect + non-blocking load (preload lalu swap ke stylesheet) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'" />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" />
+  </noscript>
 
-  <!-- Tabler Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" />
-
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            display: ["Poppins", "sans-serif"],
-            sans: ["Inter", "sans-serif"],
-          },
-        },
-      },
-    };
-  </script>
+  <!-- Tailwind CSS: di-build statis (bukan CDN) agar tidak render-blocking dan tanpa unused JS -->
+  <link rel="stylesheet" href="assets/style.css" />
 
   <style>
     body { font-family: "Inter", sans-serif; }
@@ -40,7 +34,10 @@
     <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div class="flex items-center gap-2">
         <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-violet-600 text-white">
-          <i class="ti ti-pocket text-xl"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true">
+            <path d="M4 3h16a2 2 0 0 1 2 2v6a10 10 0 0 1-10 10A10 10 0 0 1 2 11V5a2 2 0 0 1 2-2z"></path>
+            <polyline points="8 10 12 14 16 10"></polyline>
+          </svg>
         </span>
         <div>
           <h1 class="font-display font-bold text-lg text-slate-900 leading-none">Sakuku</h1>
@@ -48,15 +45,32 @@
         </div>
       </div>
 
-      <nav aria-label="Navigasi fitur Sakuku" class="flex gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
-        <button type="button" class="tab-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-white transition" data-tab="expense" aria-selected="false">
-          <i class="ti ti-wallet text-base"></i> Sakuku Uang
+      <nav aria-label="Navigasi fitur Sakuku" role="tablist" class="flex gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+        <button type="button" id="tab-expense" role="tab" aria-controls="panel-expense" aria-selected="false" tabindex="-1"
+          class="tab-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-white transition" data-tab="expense">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4z"></path>
+          </svg>
+          Sakuku Uang
         </button>
-        <button type="button" class="tab-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-white transition" data-tab="bookmark" aria-selected="false">
-          <i class="ti ti-link text-base"></i> Sakuku Link
+        <button type="button" id="tab-bookmark" role="tab" aria-controls="panel-bookmark" aria-selected="false" tabindex="-1"
+          class="tab-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-white transition" data-tab="bookmark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
+            <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          Sakuku Link
         </button>
-        <button type="button" class="tab-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-white transition" data-tab="quiz" aria-selected="false">
-          <i class="ti ti-brain text-base"></i> Sakuku Kuis
+        <button type="button" id="tab-quiz" role="tab" aria-controls="panel-quiz" aria-selected="false" tabindex="-1"
+          class="tab-btn flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-white transition" data-tab="quiz">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="M9.5 2a3.5 3.5 0 0 0-3.5 3.5v.5A3 3 0 0 0 4 9v1a3 3 0 0 0 1 2.24V15a3.5 3.5 0 0 0 3.5 3.5H9V2h.5z"></path>
+            <path d="M14.5 2A3.5 3.5 0 0 1 18 5.5v.5a3 3 0 0 1 2 2.83v1a3 3 0 0 1-1 2.24V15a3.5 3.5 0 0 1-3.5 3.5H15V2h-.5z"></path>
+          </svg>
+          Sakuku Kuis
         </button>
       </nav>
     </div>
@@ -67,7 +81,7 @@
     <!-- ========================================================= -->
     <!-- PANEL 1: SAKUKU UANG (EXPENSE TRACKER)                     -->
     <!-- ========================================================= -->
-    <section id="panel-expense" class="hidden space-y-6" aria-labelledby="expense-heading">
+    <section id="panel-expense" role="tabpanel" aria-labelledby="tab-expense" tabindex="0" class="hidden space-y-6">
       <div>
         <h2 id="expense-heading" class="font-display text-xl font-bold text-slate-900">Sakuku Uang</h2>
         <p class="text-sm text-slate-500">Catat pemasukan dan pengeluaran harianmu.</p>
@@ -128,7 +142,10 @@
         </div>
         <div class="lg:col-span-5 flex justify-end">
           <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 text-white px-4 py-2 text-sm font-semibold hover:bg-violet-700 transition">
-            <i class="ti ti-plus"></i> Tambah Transaksi
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Tambah Transaksi
           </button>
         </div>
       </form>
@@ -136,16 +153,18 @@
       <!-- Kontrol Cari / Filter / Sort -->
       <div class="flex flex-col sm:flex-row gap-2">
         <div class="relative flex-1">
-          <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input id="expense-search" type="text" placeholder="Cari judul transaksi..."
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input id="expense-search" type="text" placeholder="Cari judul transaksi..." aria-label="Cari transaksi"
             class="w-full rounded-lg border border-slate-300 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" />
         </div>
-        <select id="expense-filter-type" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
+        <select id="expense-filter-type" aria-label="Filter berdasarkan tipe transaksi" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
           <option value="all">Semua Tipe</option>
           <option value="income">Pemasukan</option>
           <option value="expense">Pengeluaran</option>
         </select>
-        <select id="expense-filter-category" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
+        <select id="expense-filter-category" aria-label="Filter berdasarkan kategori transaksi" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
           <option value="all">Semua Kategori</option>
           <option value="Makanan">Makanan</option>
           <option value="Transportasi">Transportasi</option>
@@ -154,7 +173,7 @@
           <option value="Tagihan">Tagihan</option>
           <option value="Lainnya">Lainnya</option>
         </select>
-        <select id="expense-sort" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
+        <select id="expense-sort" aria-label="Urutkan transaksi" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
           <option value="newest">Terbaru</option>
           <option value="oldest">Terlama</option>
           <option value="amount-desc">Jumlah Terbesar</option>
@@ -172,7 +191,7 @@
     <!-- ========================================================= -->
     <!-- PANEL 2: SAKUKU LINK (BOOKMARK MANAGER)                    -->
     <!-- ========================================================= -->
-    <section id="panel-bookmark" class="hidden space-y-6" aria-labelledby="bookmark-heading">
+    <section id="panel-bookmark" role="tabpanel" aria-labelledby="tab-bookmark" tabindex="0" class="hidden space-y-6">
       <div>
         <h2 id="bookmark-heading" class="font-display text-xl font-bold text-slate-900">Sakuku Link</h2>
         <p class="text-sm text-slate-500">Simpan dan kelola tautan favoritmu.</p>
@@ -203,7 +222,10 @@
         </div>
         <div class="sm:col-span-2 flex justify-end">
           <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 text-white px-4 py-2 text-sm font-semibold hover:bg-violet-700 transition">
-            <i class="ti ti-plus"></i> Tambah Bookmark
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Tambah Bookmark
           </button>
         </div>
       </form>
@@ -211,11 +233,13 @@
       <!-- Kontrol Cari / Sort -->
       <div class="flex flex-col sm:flex-row gap-2">
         <div class="relative flex-1">
-          <i class="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input id="bookmark-search" type="text" placeholder="Cari judul, URL, atau kategori..."
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input id="bookmark-search" type="text" placeholder="Cari judul, URL, atau kategori..." aria-label="Cari bookmark"
             class="w-full rounded-lg border border-slate-300 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" />
         </div>
-        <select id="bookmark-sort" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
+        <select id="bookmark-sort" aria-label="Urutkan bookmark" class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400">
           <option value="newest">Terbaru</option>
           <option value="title-asc">Judul A-Z</option>
           <option value="title-desc">Judul Z-A</option>
@@ -232,7 +256,7 @@
     <!-- ========================================================= -->
     <!-- PANEL 3: SAKUKU KUIS (QUIZ APP)                            -->
     <!-- ========================================================= -->
-    <section id="panel-quiz" class="hidden" aria-labelledby="quiz-heading">
+    <section id="panel-quiz" role="tabpanel" aria-labelledby="tab-quiz" tabindex="0" class="hidden">
       <div class="mb-6">
         <h2 id="quiz-heading" class="font-display text-xl font-bold text-slate-900">Sakuku Kuis</h2>
         <p class="text-sm text-slate-500">Uji pengetahuan dasar JavaScript-mu.</p>
@@ -242,14 +266,18 @@
 
         <!-- Layar Mulai -->
         <div id="quiz-start-screen" class="text-center space-y-4">
-          <i class="ti ti-brain text-5xl text-violet-500"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-14 h-14 mx-auto text-violet-500" aria-hidden="true">
+            <path d="M9.5 2a3.5 3.5 0 0 0-3.5 3.5v.5A3 3 0 0 0 4 9v1a3 3 0 0 0 1 2.24V15a3.5 3.5 0 0 0 3.5 3.5H9V2h.5z"></path>
+            <path d="M14.5 2A3.5 3.5 0 0 1 18 5.5v.5a3 3 0 0 1 2 2.83v1a3 3 0 0 1-1 2.24V15a3.5 3.5 0 0 1-3.5 3.5H15V2h-.5z"></path>
+          </svg>
           <h3 class="font-display text-lg font-bold text-slate-900">Siap uji pengetahuanmu?</h3>
           <p class="text-sm text-slate-500">Kuis ini terdiri dari beberapa soal pilihan ganda seputar dasar JavaScript.</p>
           <p class="text-sm text-slate-600">
             Skor tertinggi saat ini: <span id="quiz-highscore-start" class="font-semibold text-violet-600">—</span>
           </p>
           <button id="quiz-start-btn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-violet-700 transition">
-            <i class="ti ti-player-play"></i> Mulai Kuis
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Mulai Kuis
           </button>
         </div>
 
@@ -268,19 +296,30 @@
           <div class="flex justify-end">
             <button id="quiz-next-btn" type="button" disabled
               class="hidden inline-flex items-center gap-1.5 rounded-lg bg-violet-600 text-white px-4 py-2 text-sm font-semibold hover:bg-violet-700 transition disabled:opacity-50">
-              Lanjut <i class="ti ti-arrow-right"></i>
+              Lanjut
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
             </button>
           </div>
         </div>
 
         <!-- Layar Hasil Akhir -->
         <div id="quiz-result-screen" class="hidden text-center space-y-4">
-          <i class="ti ti-trophy text-5xl text-amber-500"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-14 h-14 mx-auto text-amber-500" aria-hidden="true">
+            <path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"></path>
+            <path d="M5 4H3v2a4 4 0 0 0 4 4"></path>
+            <path d="M19 4h2v2a4 4 0 0 1-4 4"></path>
+          </svg>
           <h3 class="font-display text-lg font-bold text-slate-900">Kuis Selesai!</h3>
           <p class="text-3xl font-display font-bold text-violet-600"><span id="quiz-final-score">0</span> / <span id="quiz-total-question">5</span></p>
           <p id="quiz-highscore-result" class="text-sm text-slate-600"></p>
           <button id="quiz-restart-btn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-violet-700 transition">
-            <i class="ti ti-refresh"></i> Ulangi Kuis
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+              <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            Ulangi Kuis
           </button>
         </div>
 
@@ -289,7 +328,7 @@
 
   </main>
 
-  <footer class="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-slate-400">
+  <footer class="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-slate-500">
     Sakuku &mdash; Proyek Praktikum 3 PABWE &middot; Dibuat dengan HTML, Tailwind CSS, dan JavaScript murni.
   </footer>
 
@@ -301,7 +340,11 @@
     <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-display font-bold text-slate-900">Ubah Transaksi</h3>
-        <button type="button" data-close-modal="edit-expense" class="text-slate-400 hover:text-slate-600"><i class="ti ti-x text-lg"></i></button>
+        <button type="button" data-close-modal="edit-expense" aria-label="Tutup" class="text-slate-400 hover:text-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <form id="edit-expense-form" class="space-y-3">
         <div>
@@ -349,7 +392,10 @@
   <div id="modal-delete-expense" class="hidden fixed inset-0 z-40 items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/50"></div>
     <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-5 text-center">
-      <i class="ti ti-alert-triangle text-4xl text-rose-500"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mx-auto text-rose-500" aria-hidden="true">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
       <h3 class="font-display font-bold text-slate-900 mt-2">Hapus Transaksi?</h3>
       <p class="text-sm text-slate-500 mt-1">Yakin ingin menghapus <span id="delete-expense-title" class="font-semibold"></span>? Aksi ini tidak bisa dibatalkan.</p>
       <div class="flex justify-center gap-2 mt-4">
@@ -367,7 +413,11 @@
     <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-display font-bold text-slate-900">Ubah Bookmark</h3>
-        <button type="button" data-close-modal="edit-bookmark" class="text-slate-400 hover:text-slate-600"><i class="ti ti-x text-lg"></i></button>
+        <button type="button" data-close-modal="edit-bookmark" aria-label="Tutup" class="text-slate-400 hover:text-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <form id="edit-bookmark-form" class="space-y-3">
         <div>
@@ -398,7 +448,10 @@
   <div id="modal-delete-bookmark" class="hidden fixed inset-0 z-40 items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/50"></div>
     <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-5 text-center">
-      <i class="ti ti-alert-triangle text-4xl text-rose-500"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 mx-auto text-rose-500" aria-hidden="true">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
       <h3 class="font-display font-bold text-slate-900 mt-2">Hapus Bookmark?</h3>
       <p class="text-sm text-slate-500 mt-1">Yakin ingin menghapus <span id="delete-bookmark-title" class="font-semibold"></span>? Aksi ini tidak bisa dibatalkan.</p>
       <div class="flex justify-center gap-2 mt-4">
